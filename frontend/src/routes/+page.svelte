@@ -1,2 +1,13 @@
-<h1>Welcome to SvelteKit</h1>
-<p>Visit <a href="https://kit.svelte.dev">kit.svelte.dev</a> to read the documentation</p>
+<script lang="ts">
+	import WasmTest from '$lib/WasmTest.svelte';
+	/// @ts-ignore
+	import wasm from '../../../physics-engine/Cargo.toml';
+
+	console.log(wasm);
+</script>
+
+{#await wasm()}
+	Loading
+{:then binding}
+	<WasmTest {binding}></WasmTest>
+{/await}
