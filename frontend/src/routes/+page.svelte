@@ -1,13 +1,12 @@
 <script lang="ts">
-	import WasmTest from '$lib/WasmTest.svelte';
-	/// @ts-ignore
-	import wasm from '../../../physics-engine/Cargo.toml';
+	import '$lib/app.css';
 
-	console.log(wasm);
+	import wasm, { add } from 'physics-engine';
+	import Engine from '$lib/Engine.svelte';
 </script>
 
 {#await wasm()}
 	Loading
-{:then binding}
-	<WasmTest {binding}></WasmTest>
+{:then}
+	<Engine binding={{ add }}></Engine>
 {/await}
