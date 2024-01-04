@@ -6,7 +6,7 @@
 	export let PhysicsEngine: typeof Engine;
 
 	let engine: Engine;
-	let render: Render = () => {};
+	let canvas: HTMLCanvasElement;
 	let dt = 0;
 	function renderbinding(ctx: CanvasRenderingContext2D, positions: Point[], color: string) {
 		positions.forEach((binding) => {
@@ -18,14 +18,38 @@
 		});
 	}
 	onMount(() => {
+		let destroyed = false;
 		engine = PhysicsEngine.create({
 			initial_ball_position: [0, 0],
-			circles: [],
+			circles: [
+				{
+					is_bindable: false,
+					is_static: false,
+					shape: { center: [10, 10], radius: 10 }
+				}
+			],
 			flags_positions: [],
 			polygons: []
 		});
-		render = ({ context: ctx, width, height, time }) => {
-			let message = engine.run_iteration(time - dt);
+
+		let pixelRatio = window.devicePixelRatio;
+		let ctx = canvas.getContext('2d')!;
+		let rect = canvas.getBoundingClientRect();
+
+		canvas.width = Math.round(pixelRatio * rect.right) - Math.round(pixelRatio * rect.left);
+		canvas.height = Math.round(pixelRatio * rect.bottom) - Math.round(pixelRatio * rect.top);
+
+		ctx.scale(pixelRatio, pixelRatio);
+
+		let render = (time: number) => {
+			if (destroyed) {
+				return;
+			}
+
+			let ctx = canvas.getContext('2d')!;
+			let { width, height } = canvas;
+
+			let message = engine.run_iteration((time - dt) * 1000);
 			dt = time;
 			ctx.clearRect(0, 0, width, height);
 			message.polygons.forEach((polygon) => {
@@ -65,8 +89,16 @@
 			renderbinding(ctx, message.unbound_hinges, 'orange');
 			renderbinding(ctx, message.hinges, 'blue');
 			renderbinding(ctx, message.unbound_hinges, 'green');
+
+			requestAnimationFrame(render);
 		};
-		return () => engine.free();
+
+		requestAnimationFrame(render);
+
+		return () => {
+			engine.free();
+			destroyed = true;
+		};
 	});
 
 	let count = 0;
@@ -79,9 +111,7 @@
 	<div class="grow min-h-0 flex gap-8">
 		<div class="grow-[2]">
 			<div class="overflow-hidden aspect-square max-h-full mx-auto">
-				<Canvas>
-					<Layer render={(props) => render(props)} />
-				</Canvas>
+				<canvas class="w-full h-full" bind:this={canvas}> </canvas>
 			</div>
 		</div>
 		<div class="grow">controls</div>
