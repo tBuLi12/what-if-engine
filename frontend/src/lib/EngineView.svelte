@@ -72,9 +72,18 @@
 	let count = 0;
 </script>
 
-<div class="h-screen w-screen">
-	<button on:click={() => console.log(engine.run_iteration(100))}>{count}</button>
-	<Canvas>
-		<Layer render={(props) => render(props)} />
-	</Canvas>
+<div class="h-screen w-screen p-8 flex flex-col">
+	<div>
+		<button on:click={() => console.log('lmao')}>{count}</button>
+	</div>
+	<div class="grow min-h-0 flex gap-8">
+		<div class="grow-[2]">
+			<div class="overflow-hidden aspect-square max-h-full mx-auto">
+				<Canvas>
+					<Layer render={(props) => render(props)} />
+				</Canvas>
+			</div>
+		</div>
+		<div class="grow">controls</div>
+	</div>
 </div>

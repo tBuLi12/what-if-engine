@@ -31,8 +31,6 @@ impl Engine {
     }
 
     pub fn run_iteration(&mut self, time_step_microseconds: f64) -> DisplayMessage {
-        alert("run iteration");
-
         self.0.run_iteration(time_step_microseconds)
     }
 

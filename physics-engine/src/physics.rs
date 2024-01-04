@@ -257,7 +257,6 @@ impl Engine {
             is_main_ball = false;
             retain
         });
-        alert("run iteration 1");
 
         // return main ball to starting point if out of bounds
         // and check win condition
@@ -274,12 +273,10 @@ impl Engine {
             self.flags
                 .retain(|flag| compute::collision(&*ball, flag).is_none());
 
-            if self.flags.is_empty() {
-                println!("=========== YOU WIN! ==========");
-                process::exit(0);
-            }
+            // if self.flags.is_empty() {
+            //     alert("you win");
+            // }
         }
-        alert("run iteration 2");
 
         // iterate over all pairs of shapes
         {
@@ -318,7 +315,6 @@ impl Engine {
             }
         }
 
-        alert("run iteration 3");
         self.prune_and_send_shapes()
     }
 
