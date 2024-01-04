@@ -10,10 +10,11 @@
 		ctx.stroke();
 	};
 	let count = 0;
+	$: console.log(count);
 </script>
 
 <div class="h-screen w-screen">
-	<button on:click={() => count = binding.add(count, 2)}>{count}</button>
+	<button on:click={() => (count = binding.add(count, 2))}>{count}</button>
 	<Canvas>
 		<Layer {render} />
 	</Canvas>

@@ -1,12 +1,13 @@
 <script lang="ts">
 	import '$lib/app.css';
 
-	import wasm, { add } from 'physics-engine';
-	import Engine from '$lib/Engine.svelte';
+	import wasm, { Engine, Init } from 'physics-engine';
+
+	import EngineView from '$lib/EngineView.svelte';
 </script>
 
 {#await wasm()}
 	Loading
 {:then}
-	<Engine binding={{ add }}></Engine>
+	<EngineView binding={{}}></EngineView>
 {/await}

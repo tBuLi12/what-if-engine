@@ -3,5 +3,8 @@ import { sveltekit } from '@sveltejs/kit/vite';
 import { defineConfig } from 'vite';
 
 export default defineConfig({
-	plugins: [wasmPack('../physics-engine'), sveltekit()]
+	plugins: [wasmPack('../physics-engine'), sveltekit()],
+	optimizeDeps: {
+		exclude: ['physics-engine']
+	}
 });
