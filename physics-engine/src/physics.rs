@@ -23,8 +23,8 @@ mod binding;
 pub mod compute;
 pub mod shape;
 
-const GRAVITY_COEFFICIENT: f64 = -0.000002;
-const MOVEMENT_COEFFICIENT: f64 = 0.0000004;
+const GRAVITY_COEFFICIENT: f64 = -0.00000981;
+const MOVEMENT_COEFFICIENT: f64 = 0.00004;
 
 #[derive(Serialize, Deserialize, Tsify, Debug)]
 #[tsify(into_wasm_abi, from_wasm_abi)]

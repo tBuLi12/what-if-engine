@@ -25,21 +25,36 @@
 				{
 					is_bindable: false,
 					is_static: false,
-					shape: { center: [10, 10], radius: 10 }
+					shape: { center: [10, 200], radius: 10 }
+				},
+				{
+					is_bindable: false,
+					is_static: true,
+					shape: { center: [100, 100], radius: 10 }
 				}
 			],
 			flags_positions: [],
-			polygons: []
+			polygons: [
+				{
+					is_bindable: false,
+					is_static: true,
+					shape: [
+						[100, 10],
+						[100, 0],
+						[1600, 5],
+						[1600, 15]
+					]
+				}
+			]
 		});
 
 		let pixelRatio = window.devicePixelRatio;
+		console.log(canvas);
+
 		let ctx = canvas.getContext('2d')!;
 		let rect = canvas.getBoundingClientRect();
-
 		canvas.width = Math.round(pixelRatio * rect.right) - Math.round(pixelRatio * rect.left);
 		canvas.height = Math.round(pixelRatio * rect.bottom) - Math.round(pixelRatio * rect.top);
-
-		ctx.scale(pixelRatio, pixelRatio);
 
 		let render = (time: number) => {
 			if (destroyed) {
@@ -102,6 +117,18 @@
 	});
 
 	let count = 0;
+
+	function onClick(this: HTMLCanvasElement, event: MouseEvent) {
+		let rect = this.getBoundingClientRect();
+		console.log(this);
+		console.log(rect.width, rect.height);
+		console.log(event.x - rect.left, event.y - rect.top, devicePixelRatio);
+		engine.add_circle(
+			Math.round(event.x * devicePixelRatio) - Math.round(rect.left * devicePixelRatio),
+			Math.round(event.y * devicePixelRatio) - Math.round(rect.top * devicePixelRatio),
+			10
+		);
+	}
 </script>
 
 <div class="h-screen w-screen p-8 flex flex-col">
@@ -109,9 +136,9 @@
 		<button on:click={() => console.log('lmao')}>{count}</button>
 	</div>
 	<div class="grow min-h-0 flex gap-8">
-		<div class="grow-[2]">
-			<div class="overflow-hidden aspect-square max-h-full mx-auto">
-				<canvas class="w-full h-full" bind:this={canvas}> </canvas>
+		<div class="grow-[2] basis-0">
+			<div class="overflow-hidden aspect-square max-h-full mx-auto border border-gray-400">
+				<canvas class="w-full h-full" bind:this={canvas} on:click={onClick}> </canvas>
 			</div>
 		</div>
 		<div class="grow">controls</div>
