@@ -1,4 +1,6 @@
+use serde::{Deserialize, Serialize};
 use std::ops;
+use tsify::Tsify;
 
 pub const EPSILON: f64 = 1e-7;
 
@@ -7,7 +9,8 @@ pub const EPSILON: f64 = 1e-7;
 /// The types of receivers and parameters are mostly specified explicitly
 /// as either `Point` or the type alias `Vector`, to suggest the correct intepretation
 /// of these values within a given context
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize, Tsify)]
+#[tsify(into_wasm_abi, from_wasm_abi)]
 pub struct Point(pub f64, pub f64);
 
 impl Point {
@@ -122,13 +125,16 @@ impl From<[f32; 2]> for Point {
     }
 }
 
-#[derive(Debug)]
+#[derive(Serialize, Deserialize, Tsify, Debug)]
+#[tsify(into_wasm_abi, from_wasm_abi)]
 pub struct Polygon {
     pub vertices: Vec<Point>,
+    #[serde(skip_serializing)]
     pub centroid: Point,
 }
 
-#[derive(Clone, Copy)]
+#[derive(Serialize, Deserialize, Tsify, Debug)]
+#[tsify(into_wasm_abi, from_wasm_abi)]
 pub struct Circle {
     pub center: Point,
     pub radius: f64,

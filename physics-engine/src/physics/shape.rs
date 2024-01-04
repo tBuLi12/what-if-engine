@@ -29,7 +29,7 @@ pub trait Collidable: Bounded + RefUnwindSafe {
         &mut self,
         other: &mut dyn Collidable,
         collision: Vertex,
-        time_step: Duration,
+        microseconds: f64,
     ) {
         const RESTITUTION: f64 = 0.2;
 
@@ -101,11 +101,7 @@ pub trait Collidable: Bounded + RefUnwindSafe {
         }
 
         if first.mass.is_finite() || second.mass.is_finite() {
-            let translation = normal
-                * collision
-                    .point
-                    .norm()
-                    .min(1e-6 * time_step.as_micros() as f64);
+            let translation = normal * collision.point.norm().min(1e-6 * microseconds);
             let i1 = first.mass.recip();
             let i2 = second.mass.recip();
             let i_sum = i1 + i2;
@@ -115,7 +111,7 @@ pub trait Collidable: Bounded + RefUnwindSafe {
         }
     }
 
-    fn collide(&mut self, other: &mut dyn Collidable, time_step: Duration) {
+    fn collide(&mut self, other: &mut dyn Collidable, microseconds: f64) {
         let Some(collision) = compute::collision(self, other) else {
             return;
         };
@@ -124,21 +120,19 @@ pub trait Collidable: Bounded + RefUnwindSafe {
             return;
         }
 
-        self.resolve_collision_with(other, collision, time_step);
+        self.resolve_collision_with(other, collision, microseconds);
     }
 
     fn resolve_point_reference(&self, point_ref: PointOnShape) -> Point;
     fn create_point_reference(&self, point: Point) -> PointOnShape;
 
-    fn update_position(&mut self, time_step: Duration) {
-        let time_step = time_step.as_micros() as f64;
-
+    fn update_position(&mut self, microseconds: f64) {
         let velocity = self.collision_data_mut().velocity;
         let angular_velocity = self.collision_data_mut().angular_velocity;
 
-        self.collision_data_mut().velocity += Point(0.0, GRAVITY_COEFFICIENT * time_step);
-        self.rotate(angular_velocity * MOVEMENT_COEFFICIENT * time_step);
-        self.translate(velocity * MOVEMENT_COEFFICIENT * time_step);
+        self.collision_data_mut().velocity += Point(0.0, GRAVITY_COEFFICIENT * microseconds);
+        self.rotate(angular_velocity * MOVEMENT_COEFFICIENT * microseconds);
+        self.translate(velocity * MOVEMENT_COEFFICIENT * microseconds);
     }
 }
 

@@ -1,5 +1,9 @@
 use crate::geometry::{Circle, Point};
+use serde::{Deserialize, Serialize};
+use tsify::Tsify;
 
+#[derive(Serialize, Deserialize, Tsify, Debug)]
+#[tsify(into_wasm_abi, from_wasm_abi)]
 pub struct Entity<S> {
     pub shape: S,
     pub is_static: bool,
@@ -12,6 +16,8 @@ pub struct Entity<S> {
 /// and passed directly to the physics engine
 ///
 
+#[derive(Serialize, Deserialize, Tsify, Debug)]
+#[tsify(into_wasm_abi, from_wasm_abi)]
 pub struct Level {
     pub initial_ball_position: Point,
     pub circles: Vec<Entity<Circle>>,

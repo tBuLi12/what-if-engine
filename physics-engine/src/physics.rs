@@ -3,16 +3,18 @@ use std::{
     os::raw::c_void,
     process,
     rc::{Rc, Weak},
-    time::Instant,
 };
 
-use rand::Rng;
+// use rand::Rng;
+use serde::{Deserialize, Serialize};
+use tsify::Tsify;
 
 use self::{
     binding::{Binding, Unbound},
     shape::{Circle, Collidable, Polygon},
 };
 use crate::{
+    alert,
     geometry::{self, Point, Vector},
     levels::Level,
 };
@@ -24,7 +26,8 @@ pub mod shape;
 const GRAVITY_COEFFICIENT: f64 = -0.000002;
 const MOVEMENT_COEFFICIENT: f64 = 0.0000004;
 
-#[derive(Debug)]
+#[derive(Serialize, Deserialize, Tsify, Debug)]
+#[tsify(into_wasm_abi, from_wasm_abi)]
 pub struct WithColor<S> {
     pub color: [f32; 3],
     pub shape: S,
@@ -32,19 +35,21 @@ pub struct WithColor<S> {
 
 impl<S> From<S> for WithColor<S> {
     fn from(shape: S) -> Self {
-        let mut rng = rand::thread_rng();
+        // let mut rng = rand::thread_rng();
 
         Self {
             color: [
-                rng.gen_range(0.0..1.0),
-                rng.gen_range(0.0..1.0),
-                rng.gen_range(0.0..1.0),
+                0.0, // rng.gen_range(0.0..1.0),
+                0.0, // rng.gen_range(0.0..1.0),
+                0.0, // rng.gen_range(0.0..1.0),
             ],
             shape,
         }
     }
 }
 
+#[derive(Serialize, Deserialize, Tsify)]
+#[tsify(into_wasm_abi, from_wasm_abi)]
 pub struct DisplayMessage {
     pub polygons: Vec<WithColor<geometry::Polygon>>,
     pub circles: Vec<WithColor<geometry::Circle>>,
@@ -166,7 +171,6 @@ pub struct Engine {
     circles: Vec<WithColor<Weak<RefCell<Circle>>>>,
     main_ball_starting_position: Point,
     flags: Vec<Polygon>,
-    last_iteration: Instant,
 }
 
 impl Engine {
@@ -197,7 +201,6 @@ impl Engine {
                     ])
                 })
                 .collect(),
-            last_iteration: Instant::now(),
         };
 
         let main_ball_weak = engine.add_entity(
@@ -239,10 +242,7 @@ impl Engine {
         engine
     }
 
-    pub fn run_iteration(&mut self) -> DisplayMessage {
-        let time_step = self.last_iteration.elapsed();
-        self.last_iteration = Instant::now();
-
+    pub fn run_iteration(&mut self, microseconds: f64) -> DisplayMessage {
         // move all shapes, removing ones out of bounds
         // don't remove the first one though, as it's the main ball
         let mut is_main_ball = true;
@@ -250,13 +250,14 @@ impl Engine {
             let mut shape = entity.shape.borrow_mut();
 
             if !entity.is_static {
-                shape.update_position(time_step);
+                shape.update_position(microseconds);
             }
 
             let retain = shape.collision_data_mut().centroid.1 > -5.0 || is_main_ball;
             is_main_ball = false;
             retain
         });
+        alert("run iteration 1");
 
         // return main ball to starting point if out of bounds
         // and check win condition
@@ -278,6 +279,7 @@ impl Engine {
                 process::exit(0);
             }
         }
+        alert("run iteration 2");
 
         // iterate over all pairs of shapes
         {
@@ -301,14 +303,14 @@ impl Engine {
                     });
 
                     if !is_boud_to_other {
-                        shape.collide(&mut *other.shape.borrow_mut(), time_step)
+                        shape.collide(&mut *other.shape.borrow_mut(), microseconds)
                     }
                 });
 
                 // enforce binding constraints
                 this.bindings.iter().for_each(|(binding, target)| {
                     if let Some(other) = target.upgrade() {
-                        binding.enforce(&mut *shape, &mut *other.borrow_mut(), time_step)
+                        binding.enforce(&mut *shape, &mut *other.borrow_mut(), microseconds)
                     }
                 });
 
@@ -316,6 +318,7 @@ impl Engine {
             }
         }
 
+        alert("run iteration 3");
         self.prune_and_send_shapes()
     }
 

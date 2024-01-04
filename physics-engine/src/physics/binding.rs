@@ -74,15 +74,15 @@ impl Binding {
         self,
         shape1: &mut dyn Collidable,
         shape2: &mut dyn Collidable,
-        time_step: Duration,
+        microseconds: f64,
     ) {
         match self {
             Self::Hinge { first, second } => {
-                Self::enforce_hinge((shape1, first), (shape2, second), time_step)
+                Self::enforce_hinge((shape1, first), (shape2, second), microseconds)
             }
             Self::Rigid { first, second } => {
-                Self::enforce_hinge((shape1, first.0), (shape2, second.0), time_step);
-                Self::enforce_hinge((shape1, first.1), (shape2, second.1), time_step);
+                Self::enforce_hinge((shape1, first.0), (shape2, second.0), microseconds);
+                Self::enforce_hinge((shape1, first.1), (shape2, second.1), microseconds);
             }
         }
     }
@@ -90,7 +90,7 @@ impl Binding {
     fn enforce_hinge(
         first: (&mut dyn Collidable, PointOnShape),
         second: (&mut dyn Collidable, PointOnShape),
-        time_step: Duration,
+        microseconds: f64,
     ) {
         let point1 = first.1.on(first.0);
         let point2 = second.1.on(second.0);
@@ -102,7 +102,7 @@ impl Binding {
                     point: translation,
                     created_from: (point1, point2),
                 },
-                time_step,
+                microseconds,
             )
         }
     }
