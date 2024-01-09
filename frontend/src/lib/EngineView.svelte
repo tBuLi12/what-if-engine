@@ -354,6 +354,35 @@
 				<input type="checkbox" bind:checked={dynamic_enabled} />
 				<span>dynamic friction</span>
 			</div>
+			<div class="mt-4 pt-4 border-t border-gray-400 text-justify">
+				The physics engine used for the simulation on the right is our toy physics engine written in
+				Rust and compiled to WebAssembly. The engine uses two main algorithms to compute the
+				collisions. First, the
+				<a
+					target="_blank"
+					href="https://en.wikipedia.org/wiki/Gilbert%E2%80%93Johnson%E2%80%93Keerthi_distance_algorithm"
+					>GJK</a
+				>
+				algorithm helps determine werther two shapes are in contact. If they are, the
+				<a target="_blank" href="https://dyn4j.org/2010/05/epa-expanding-polytope-algorithm/">EPA</a
+				>
+				algorithm picks up at the collision vector, and finds the minimum penetration vector. Based
+				on that, an
+				<a
+					target="_blank"
+					href="https://en.wikipedia.org/wiki/Collision_response#Impulse-based_contact_model"
+				>
+					impulse</a
+				>
+				is calculated, which is then used to apply momentum to the relevant shapes at each time tick.
+			</div>
 		</div>
 	</div>
 </div>
+
+<style>
+	a {
+		color: blue;
+		text-decoration: underline;
+	}
+</style>
