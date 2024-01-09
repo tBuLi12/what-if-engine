@@ -75,14 +75,40 @@ impl Binding {
         shape1: &mut dyn Collidable,
         shape2: &mut dyn Collidable,
         microseconds: f64,
+        restitution_mulipiler: f64,
+        friction_mulipiler: f64,
+        static_friction_enabled: bool,
+        dynamic_friction_enabled: bool,
     ) {
         match self {
-            Self::Hinge { first, second } => {
-                Self::enforce_hinge((shape1, first), (shape2, second), microseconds)
-            }
+            Self::Hinge { first, second } => Self::enforce_hinge(
+                (shape1, first),
+                (shape2, second),
+                microseconds,
+                restitution_mulipiler,
+                friction_mulipiler,
+                static_friction_enabled,
+                dynamic_friction_enabled,
+            ),
             Self::Rigid { first, second } => {
-                Self::enforce_hinge((shape1, first.0), (shape2, second.0), microseconds);
-                Self::enforce_hinge((shape1, first.1), (shape2, second.1), microseconds);
+                Self::enforce_hinge(
+                    (shape1, first.0),
+                    (shape2, second.0),
+                    microseconds,
+                    restitution_mulipiler,
+                    friction_mulipiler,
+                    static_friction_enabled,
+                    dynamic_friction_enabled,
+                );
+                Self::enforce_hinge(
+                    (shape1, first.1),
+                    (shape2, second.1),
+                    microseconds,
+                    restitution_mulipiler,
+                    friction_mulipiler,
+                    static_friction_enabled,
+                    dynamic_friction_enabled,
+                );
             }
         }
     }
@@ -91,6 +117,10 @@ impl Binding {
         first: (&mut dyn Collidable, PointOnShape),
         second: (&mut dyn Collidable, PointOnShape),
         microseconds: f64,
+        restitution_mulipiler: f64,
+        friction_mulipiler: f64,
+        static_friction_enabled: bool,
+        dynamic_friction_enabled: bool,
     ) {
         let point1 = first.1.on(first.0);
         let point2 = second.1.on(second.0);
@@ -103,6 +133,10 @@ impl Binding {
                     created_from: (point1, point2),
                 },
                 microseconds,
+                restitution_mulipiler,
+                friction_mulipiler,
+                static_friction_enabled,
+                dynamic_friction_enabled,
             )
         }
     }

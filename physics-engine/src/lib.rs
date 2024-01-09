@@ -44,7 +44,7 @@ impl Engine {
             polygon
                 .vertices
                 .into_iter()
-                .map(|Point(x, y)| geometry::Point(x as f64, -y as f64)),
+                .map(|Point(x, y)| geometry::Point(x as f64, y as f64)),
         ))
     }
 
@@ -58,5 +58,25 @@ impl Engine {
 
     pub fn add_rigid(&mut self, x: f64, y: f64) {
         self.0.add_rigid(geometry::Point(x, y));
+    }
+
+    pub fn set_gravity_multipier(&mut self, value: f64) {
+        self.0.set_gravity_multipier(value);
+    }
+
+    pub fn set_restitution_multipier(&mut self, value: f64) {
+        self.0.set_restitution_multipier(value);
+    }
+
+    pub fn set_friction_multipier(&mut self, value: f64) {
+        self.0.set_friction_multipier(value);
+    }
+
+    pub fn set_static_friction(&mut self, enabled: bool) {
+        self.0.set_static_friction(enabled);
+    }
+
+    pub fn set_dynamic_friction(&mut self, enabled: bool) {
+        self.0.set_dynamic_friction(enabled);
     }
 }

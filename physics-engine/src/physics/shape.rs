@@ -30,8 +30,13 @@ pub trait Collidable: Bounded + RefUnwindSafe {
         other: &mut dyn Collidable,
         collision: Vertex,
         microseconds: f64,
+        restitution_mulipiler: f64,
+        friction_mulipiler: f64,
+        static_friction_enabled: bool,
+        dynamic_friction_enabled: bool,
     ) {
         const RESTITUTION: f64 = 0.2;
+        let restitution = restitution_mulipiler * RESTITUTION;
 
         let first = self.collision_data_mut();
         let second = other.collision_data_mut();
@@ -52,7 +57,7 @@ pub trait Collidable: Bounded + RefUnwindSafe {
             second_offset,
             normal,
             relative_velocity,
-            RESTITUTION + 1.0,
+            restitution + 1.0,
         );
 
         if impulse > 0.0 {
@@ -68,21 +73,27 @@ pub trait Collidable: Bounded + RefUnwindSafe {
                 1.0,
             );
 
-            let friction_impulse = if static_friction_impulse > impulse * 1e-4 {
-                compute::impulse(
-                    first.clone(),
-                    second.clone(),
-                    first_offset,
-                    second_offset,
-                    friction_normal,
-                    relative_velocity,
-                    (50.0 * collision.point.norm()).min(1.0),
-                )
+            let friction_impulse = if static_friction_impulse > impulse * friction_mulipiler * 1e-4
+            {
+                if dynamic_friction_enabled {
+                    compute::impulse(
+                        first.clone(),
+                        second.clone(),
+                        first_offset,
+                        second_offset,
+                        friction_normal,
+                        relative_velocity,
+                        (50.0 * collision.point.norm() * friction_mulipiler).min(1.0),
+                    )
+                } else {
+                    0.0
+                }
             } else {
-                // the static fricion started causing problems
-                // in the later stages of tuning
-                0.0
-                // static_friction_impulse
+                if static_friction_enabled {
+                    static_friction_impulse
+                } else {
+                    0.0
+                }
             };
 
             first.velocity -= normal * (impulse / first.mass);
@@ -111,7 +122,15 @@ pub trait Collidable: Bounded + RefUnwindSafe {
         }
     }
 
-    fn collide(&mut self, other: &mut dyn Collidable, microseconds: f64) {
+    fn collide(
+        &mut self,
+        other: &mut dyn Collidable,
+        microseconds: f64,
+        restitution_mulipiler: f64,
+        friction_mulipiler: f64,
+        static_friction_enabled: bool,
+        dynamic_friction_enabled: bool,
+    ) {
         let Some(collision) = compute::collision(self, other) else {
             return;
         };
@@ -120,17 +139,26 @@ pub trait Collidable: Bounded + RefUnwindSafe {
             return;
         }
 
-        self.resolve_collision_with(other, collision, microseconds);
+        self.resolve_collision_with(
+            other,
+            collision,
+            microseconds,
+            restitution_mulipiler,
+            friction_mulipiler,
+            static_friction_enabled,
+            dynamic_friction_enabled,
+        );
     }
 
     fn resolve_point_reference(&self, point_ref: PointOnShape) -> Point;
     fn create_point_reference(&self, point: Point) -> PointOnShape;
 
-    fn update_position(&mut self, microseconds: f64) {
+    fn update_position(&mut self, microseconds: f64, gravity_multiplier: f64) {
         let velocity = self.collision_data_mut().velocity;
         let angular_velocity = self.collision_data_mut().angular_velocity;
 
-        self.collision_data_mut().velocity += Point(0.0, GRAVITY_COEFFICIENT * microseconds);
+        self.collision_data_mut().velocity +=
+            Point(0.0, gravity_multiplier * GRAVITY_COEFFICIENT * microseconds);
         self.rotate(angular_velocity * MOVEMENT_COEFFICIENT * microseconds);
         self.translate(velocity * MOVEMENT_COEFFICIENT * microseconds);
     }

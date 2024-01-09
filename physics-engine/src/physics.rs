@@ -1,11 +1,10 @@
 use std::{
     cell::RefCell,
     os::raw::c_void,
-    process,
     rc::{Rc, Weak},
 };
 
-// use rand::Rng;
+use rand::Rng;
 use serde::{Deserialize, Serialize};
 use tsify::Tsify;
 
@@ -14,7 +13,6 @@ use self::{
     shape::{Circle, Collidable, Polygon},
 };
 use crate::{
-    alert,
     geometry::{self, Point, Vector},
     levels::Level,
 };
@@ -23,7 +21,7 @@ mod binding;
 pub mod compute;
 pub mod shape;
 
-const GRAVITY_COEFFICIENT: f64 = -0.00000981;
+const GRAVITY_COEFFICIENT: f64 = 0.00000981;
 const MOVEMENT_COEFFICIENT: f64 = 0.00004;
 
 #[derive(Serialize, Deserialize, Tsify, Debug)]
@@ -35,13 +33,16 @@ pub struct WithColor<S> {
 
 impl<S> From<S> for WithColor<S> {
     fn from(shape: S) -> Self {
-        // let mut rng = rand::thread_rng();
+        let mut rng = rand::thread_rng();
 
         Self {
             color: [
-                0.0, // rng.gen_range(0.0..1.0),
-                0.0, // rng.gen_range(0.0..1.0),
-                0.0, // rng.gen_range(0.0..1.0),
+                rng.gen_range(0.0..1.0),
+                rng.gen_range(0.0..1.0),
+                rng.gen_range(0.0..1.0),
+                // 0.0,
+                // 0.0,
+                // 0.0,
             ],
             shape,
         }
@@ -171,6 +172,11 @@ pub struct Engine {
     circles: Vec<WithColor<Weak<RefCell<Circle>>>>,
     main_ball_starting_position: Point,
     flags: Vec<Polygon>,
+    restitution_mulipiler: f64,
+    friction_mulipiler: f64,
+    gravity_mulipiler: f64,
+    static_friction_enabled: bool,
+    dynamic_friction_enabled: bool,
 }
 
 impl Engine {
@@ -201,6 +207,11 @@ impl Engine {
                     ])
                 })
                 .collect(),
+            friction_mulipiler: 1.0,
+            restitution_mulipiler: 1.0,
+            gravity_mulipiler: 1.0,
+            dynamic_friction_enabled: true,
+            static_friction_enabled: true,
         };
 
         let main_ball_weak = engine.add_entity(
@@ -250,7 +261,7 @@ impl Engine {
             let mut shape = entity.shape.borrow_mut();
 
             if !entity.is_static {
-                shape.update_position(microseconds);
+                shape.update_position(microseconds, self.gravity_mulipiler);
             }
 
             let retain = shape.collision_data_mut().centroid.1 > -5.0 || is_main_ball;
@@ -300,14 +311,29 @@ impl Engine {
                     });
 
                     if !is_boud_to_other {
-                        shape.collide(&mut *other.shape.borrow_mut(), microseconds)
+                        shape.collide(
+                            &mut *other.shape.borrow_mut(),
+                            microseconds,
+                            self.restitution_mulipiler,
+                            self.friction_mulipiler,
+                            self.static_friction_enabled,
+                            self.dynamic_friction_enabled,
+                        )
                     }
                 });
 
                 // enforce binding constraints
                 this.bindings.iter().for_each(|(binding, target)| {
                     if let Some(other) = target.upgrade() {
-                        binding.enforce(&mut *shape, &mut *other.borrow_mut(), microseconds)
+                        binding.enforce(
+                            &mut *shape,
+                            &mut *other.borrow_mut(),
+                            microseconds,
+                            self.restitution_mulipiler,
+                            self.friction_mulipiler,
+                            self.static_friction_enabled,
+                            self.dynamic_friction_enabled,
+                        )
                     }
                 });
 
@@ -429,5 +455,25 @@ impl Engine {
         {
             self.entities[i].add_rigid(point);
         }
+    }
+
+    pub fn set_gravity_multipier(&mut self, value: f64) {
+        self.gravity_mulipiler = value;
+    }
+
+    pub fn set_restitution_multipier(&mut self, value: f64) {
+        self.restitution_mulipiler = value;
+    }
+
+    pub fn set_friction_multipier(&mut self, value: f64) {
+        self.friction_mulipiler = value;
+    }
+
+    pub fn set_static_friction(&mut self, enabled: bool) {
+        self.static_friction_enabled = enabled;
+    }
+
+    pub fn set_dynamic_friction(&mut self, enabled: bool) {
+        self.dynamic_friction_enabled = enabled;
     }
 }
