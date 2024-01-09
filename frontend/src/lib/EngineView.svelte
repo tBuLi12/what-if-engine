@@ -52,12 +52,14 @@
 			]
 		});
 
-		let pixelRatio = window.devicePixelRatio;
-		console.log(canvas);
+		let observer = new ResizeObserver(() => {
+			let pixelRatio = window.devicePixelRatio;
+			let rect = canvas.getBoundingClientRect();
+			canvas.width = Math.round(pixelRatio * rect.right) - Math.round(pixelRatio * rect.left);
+			canvas.height = Math.round(pixelRatio * rect.bottom) - Math.round(pixelRatio * rect.top);
+		});
 
-		let rect = canvas.getBoundingClientRect();
-		canvas.width = Math.round(pixelRatio * rect.right) - Math.round(pixelRatio * rect.left);
-		canvas.height = Math.round(pixelRatio * rect.bottom) - Math.round(pixelRatio * rect.top);
+		observer.observe(canvas);
 
 		let render = (time: number) => {
 			if (destroyed) {
@@ -144,6 +146,7 @@
 		return () => {
 			engine.free();
 			destroyed = true;
+			observer.disconnect();
 		};
 	});
 
@@ -366,8 +369,8 @@
 				algorithm helps determine werther two shapes are in contact. If they are, the
 				<a target="_blank" href="https://dyn4j.org/2010/05/epa-expanding-polytope-algorithm/">EPA</a
 				>
-				algorithm picks up at the collision vector, and finds the minimum penetration vector. Based
-				on that, an
+				algorithm picks up at the collision vector, and finds the minimum penetration vector. Based on
+				that, an
 				<a
 					target="_blank"
 					href="https://en.wikipedia.org/wiki/Collision_response#Impulse-based_contact_model"
