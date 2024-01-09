@@ -358,6 +358,12 @@
 				<span>dynamic friction</span>
 			</div>
 			<div class="mt-4 pt-4 border-t border-gray-400 text-justify">
+				Controlls:
+				To draw a polygon draw outline on the canvas holding left mouse button.
+				To draw circle just place mouse where you want to create circle and hold left mouse button. When radius reaches desired size just release mouse button.
+				You can connect two shapes via hinge. In order to do so press 'd' button and left click on first shape. This will create a hinge. To connect other shape to it you have to draw another shape overlapping created hinge.
+				To delete shape press 'a' and left click on a shape.
+
 				The physics engine used for the simulation on the right is our toy physics engine written in
 				Rust and compiled to WebAssembly. The engine uses two main algorithms to compute the
 				collisions. First, the
