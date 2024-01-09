@@ -29,6 +29,7 @@
 	},
 	"type": "module",
 	"dependencies": {
+		"@sveltejs/adapter-static": "^3.0.1",
 		"svelte-canvas": "^1.0.2",
 		"vite-plugin-wasm-pack": "^0.1.12"
 	}
